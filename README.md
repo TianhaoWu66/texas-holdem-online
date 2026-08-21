@@ -1,0 +1,48 @@
+# 德州风云 · Texas Hold\'em Online
+
+在线**无限注德州扑克**：边池结算、破产补筹、观战、人机对战。仿照「香料商路」站点架构开发。
+
+## ✨ 功能
+- **联机对战**：房间码加入，2–6 人，无限注（NLH）
+- **人机对手**：简单 / 普通 / 困难 三档 AI
+- **边池结算**：多玩家全下正确分配主池与边池
+- **破产补筹**：筹码输光自动补到 1000，并记录破产次数
+- **观战**：观众可看公共牌与筹码，但看不到任何人的底牌
+- **账号系统**：注册 / 登录 / 游客模式
+- **语音快捷聊**、PWA 离线缓存、全屏适配
+
+## 🧱 技术栈
+| 部分 | 技术 |
+| --- | --- |
+| 前端 | React 19 + Vite 静态构建 + Tailwind CSS |
+| 引擎 | TypeScript（`lib/poker.ts`）+ Python 移植（`pythonanywhere/poker.py`） |
+| 后端 | PythonAnywhere + Flask + SQLite（`pythonanywhere/app.py`） |
+
+## 📁 目录
+```
+app/poker.tsx          前端（环桌界面/操作/观战）
+lib/poker.ts           德州扑克引擎（TS）
+pythonanywhere/        Flask 后端 + 引擎 Python 版 + 静态前端
+tests/                 引擎测试
+```
+
+## 🚀 本地运行
+```bash
+npm install
+npx vite build --config pythonanywhere/frontend/vite.config.ts   # 构建前端
+cd pythonanywhere && pip install flask && python app.py          # 启动后端(5001)
+```
+
+## ✅ 测试
+```bash
+npx tsc lib/poker.ts --outDir tests/out --module commonjs --target es2022 --skipLibCheck
+# 将 tests/out/poker.js 改名为 .cjs 后：
+node --test tests/poker.test.cjs       # TS 引擎（9 组）
+python pythonanywhere/test_poker.py    # Python 引擎（30 项）
+```
+
+## 🗺️ 路线
+- [x] 联机 / 人机 / 边池 / 破产补筹 / 观战 / 账号 / 语音 / PWA / 全屏
+- [ ] 离线同屏（传设备轮流）
+- [ ] 热点联机（WebRTC 断网多设备）
+- [ ] 更多规则（保险、加注上限、锦标赛模式）
