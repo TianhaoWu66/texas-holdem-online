@@ -17,6 +17,7 @@ export type PokerPlayer = {
   bet: number;
   totalBet: number;
   status: "active" | "folded" | "allin" | "out";
+  acted: boolean;
   isBot?: boolean;
   botDifficulty?: BotDifficulty;
 };
@@ -144,7 +145,7 @@ export function createPokerLobby(hostName: string, maxPlayers: number, token: st
     id: crypto.randomUUID(), token, name: hostName, color: PLAYER_COLORS[0],
     avatar: profileSafe.avatar, accountId: profileSafe.accountId,
     chips: STARTING_CHIPS, startingChips: STARTING_CHIPS, bankruptcies: 0,
-    hole: [], bet: 0, totalBet: 0, status: "active",
+    hole: [], bet: 0, totalBet: 0, status: "active", acted: false,
   };
   return {
     status: "lobby", maxPlayers, hostId: host.id, players: [host], spectators: [],
@@ -163,7 +164,7 @@ export function addPokerPlayer(state: PokerGameState, name: string, token: strin
     id: crypto.randomUUID(), token, name, color: PLAYER_COLORS[state.players.length],
     avatar: profileSafe.avatar, accountId: profileSafe.accountId,
     chips: STARTING_CHIPS, startingChips: STARTING_CHIPS, bankruptcies: 0,
-    hole: [], bet: 0, totalBet: 0, status: "active",
+    hole: [], bet: 0, totalBet: 0, status: "active", acted: false,
   });
   state.log.push(`${name} 加入了牌局`);
   return state;
@@ -186,7 +187,7 @@ export function addPokerBot(state: PokerGameState, difficulty: BotDifficulty): P
   state.players.push({
     id: crypto.randomUUID(), name, color: PLAYER_COLORS[state.players.length], avatar: "🤖",
     chips: STARTING_CHIPS, startingChips: STARTING_CHIPS, bankruptcies: 0,
-    hole: [], bet: 0, totalBet: 0, status: "active", isBot: true, botDifficulty: difficulty,
+    hole: [], bet: 0, totalBet: 0, status: "active", acted: false, isBot: true, botDifficulty: difficulty,
   });
   state.log.push(`${name}（人机）加入了牌局`);
   return state;
@@ -226,6 +227,7 @@ export function startHand(state: PokerGameState): PokerGameState {
   state.players.forEach((p) => {
     p.hole = []; p.bet = 0; p.totalBet = 0;
     p.status = p.chips > 0 ? "active" : "out";
+    p.acted = false;
   });
   state.deck = shuffle(fullDeck());
   state.community = [];
@@ -310,17 +312,20 @@ export function applyPokerAction(state: PokerGameState, playerId: string, action
 
   if (action.type === "fold") {
     player.status = "folded";
+    player.acted = true;
     state.log.push(`${player.name} 弃牌`);
     state.lastAction = `${player.name} 弃牌`;
     return advanceAfterAction(state);
   }
   if (action.type === "check") {
     if (toCall !== 0) throw new Error("当前需要跟注，不能过牌");
+    player.acted = true;
     state.log.push(`${player.name} 过牌`);
     state.lastAction = `${player.name} 过牌`;
     return advanceAfterAction(state);
   }
   if (action.type === "call") {
+    player.acted = true;
     const put = Math.min(player.chips, toCall);
     player.chips -= put;
     player.bet += put;
@@ -335,6 +340,7 @@ export function applyPokerAction(state: PokerGameState, playerId: string, action
     let amount = Math.floor(action.amount);
     const totalToReach = action.type === "bet" ? amount : amount;
     const isRaise = totalToReach > state.currentBet;
+    player.acted = true;
     if (isRaise) {
       const raiseTo = totalToReach;
       const minAllowed = state.currentBet + state.minRaise;
@@ -364,6 +370,7 @@ export function applyPokerAction(state: PokerGameState, playerId: string, action
     return advanceAfterAction(state);
   }
   if (action.type === "allin") {
+    player.acted = true;
     const put = player.chips;
     player.bet += put;
     player.totalBet += put;
@@ -389,7 +396,7 @@ function advanceAfterAction(state: PokerGameState): PokerGameState {
     return finishHand(state);
   }
   // 是否所有 active 玩家都已跟注到 currentBet（且至少有一人下过注或全下）
-  const allMatched = state.players.every((p) => p.status === "folded" || p.status === "out" || p.status === "allin" || p.bet === state.currentBet);
+  const allMatched = state.players.every((p) => p.status === "folded" || p.status === "out" || p.status === "allin" || (p.acted && p.bet === state.currentBet));
   const someoneCommitted = state.players.some((p) => p.totalBet > 0);
   if (allMatched && someoneCommitted) {
     return advanceStreet(state);
@@ -402,7 +409,7 @@ function advanceAfterAction(state: PokerGameState): PokerGameState {
 
 function advanceStreet(state: PokerGameState): PokerGameState {
   // 重置本轮下注
-  state.players.forEach((p) => { p.bet = 0; });
+  state.players.forEach((p) => { p.bet = 0; p.acted = false; });
   state.currentBet = 0;
   state.minRaise = BIG_BLIND;
   if (state.round === "preflop") {

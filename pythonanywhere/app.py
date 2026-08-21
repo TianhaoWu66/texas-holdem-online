@@ -52,6 +52,7 @@ CREATE INDEX IF NOT EXISTS idx_account_sessions_expires_at ON account_sessions(e
 app = Flask(__name__)
 
 CHAT_PHRASES = ["老叟戏顽童", "神之一手", "你的计谋被我识破了"]
+BOT_DELAY_MS = 3000  # 人机思考延迟：轮到人机后至少等待这么久才出牌
 
 
 def now_ms():
@@ -105,10 +106,10 @@ def _clamp_max_players(value):
 
 
 def _load_room(code):
-    row = get_db().execute("SELECT state, version FROM rooms WHERE code = ?", (code,)).fetchone()
+    row = get_db().execute("SELECT state, version, updated_at FROM rooms WHERE code = ?", (code,)).fetchone()
     if not row:
         raise ValueError("找不到这个房间")
-    return {"state": json.loads(row["state"]), "version": row["version"]}
+    return {"state": json.loads(row["state"]), "version": row["version"], "updated_at": row["updated_at"]}
 
 
 def _save_room(code, state, version):
@@ -146,6 +147,28 @@ def find_player(state, account, token):
     )
 
 
+def _maybe_advance_bot(code, room):
+    """人机思考延迟：轮到人机且已过 BOT_DELAY_MS 时，走一步。"""
+    state = room["state"]
+    players = state.get("players") or []
+    idx = state.get("currentPlayerIndex", -1)
+    if state.get("status") != "playing" or idx < 0 or idx >= len(players):
+        return room
+    player = players[idx]
+    if not player.get("isBot") or player.get("status") != "active":
+        return room
+    if now_ms() - (room.get("updated_at") or 0) < BOT_DELAY_MS:
+        return room
+    try:
+        poker.run_one_bot_turn(state)
+        version = _save_room(code, state, room["version"])
+        get_db().commit()
+        return {"state": state, "version": version, "updated_at": now_ms()}
+    except Exception:
+        # 并发下已被其他请求推进，重新读最新状态
+        return _load_room(code)
+
+
 @app.route("/api/room", methods=["GET"])
 def room_get():
     try:
@@ -155,6 +178,7 @@ def room_get():
         spectator_id = request.args.get("spectatorId") or None
         is_spectator = bool(spectator_id)
         room = _load_room(code)
+        room = _maybe_advance_bot(code, room)
         return _json_response({
             "code": code, "version": room["version"],
             "state": public_poker_state(room["state"], viewer_id, is_spectator),
@@ -237,12 +261,10 @@ def room_post():
             if not requester or requester["id"] != state["hostId"]:
                 raise ValueError("只有房主可以开始")
             poker.start_hand(state)
-            poker.run_poker_bot_turns(state)
         elif command == "action" and body.get("action"):
             if not requester:
                 raise ValueError("玩家身份已失效，请重新加入")
             poker.apply_poker_action(state, requester["id"], body["action"])
-            poker.run_poker_bot_turns(state)
         elif command == "chat" and body.get("phrase"):
             if not requester:
                 raise ValueError("玩家身份已失效，请重新加入")

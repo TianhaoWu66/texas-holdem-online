@@ -204,6 +204,7 @@ export default function PokerGame() {
   const current = room?.state.players[room?.state.currentPlayerIndex ?? -1];
   const legal = room && me ? legalPokerActions(room.state, me.id) : [];
   const canAct = !!room && !!me && room.state.status === "playing" && current?.id === me.id && legal.length > 0;
+  const isBotTurn = !!room && room.state.status === "playing" && !!current?.isBot;
   const toCall = room && me ? Math.max(0, room.state.currentBet - me.bet) : 0;
   const minRaiseTo = room ? room.state.currentBet + room.state.minRaise : BIG_BLIND;
   const isHost = !!room && !!me && me.id === room.state.hostId;
@@ -277,7 +278,7 @@ export default function PokerGame() {
   return <main className={`game-shell ${isSpectator ? "spectator" : ""}`}>
     <header className="game-header">
       <div className="wordmark">🂠 德州风云</div>
-      <div className="round-info"><span>第 {state.handNumber} 手</span><b>{revealing ? "摊牌中…" : isHandEnded ? "本手结束" : state.status === "lobby" ? "等待开局" : state.lastAction}</b>{isSpectator && <em>观战中</em>}</div>
+      <div className="round-info"><span>第 {state.handNumber} 手</span><b>{revealing ? "摊牌中…" : isHandEnded ? "本手结束" : state.status === "lobby" ? "等待开局" : canAct ? "轮到你行动" : isBotTurn ? `${current?.name} 🤖 思考中…` : state.lastAction}</b>{isSpectator && <em>观战中</em>}</div>
       <div className="header-actions"><button className="room-code mini" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${room.code}`).then(() => setError("已复制邀请链接"))}><small>房间</small>{room.code}<span>复制</span></button></div>
     </header>
 
@@ -311,6 +312,7 @@ export default function PokerGame() {
               {p.status === "folded" && <span className="folded-chip">弃牌</span>}
               {p.status === "allin" && <span className="allin-chip">全下</span>}
               {activeChat?.playerId === p.id && <span className="speech-chip">{activeChat.phrase}</span>}
+              {isCurrent && p.isBot && <span className="thinking-badge">🤖 思考中</span>}
             </div>
           </div>;
         })}

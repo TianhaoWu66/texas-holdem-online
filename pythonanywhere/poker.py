@@ -110,7 +110,7 @@ def _make_player(name, token, color, profile=None, is_bot=False, difficulty=None
         "avatar": "🤖" if is_bot else profile.get("avatar"),
         "accountId": profile.get("accountId"),
         "chips": STARTING_CHIPS, "startingChips": STARTING_CHIPS, "bankruptcies": 0,
-        "hole": [], "bet": 0, "totalBet": 0, "status": "active",
+        "hole": [], "bet": 0, "totalBet": 0, "status": "active", "acted": False,
         **({"isBot": True, "botDifficulty": difficulty} if is_bot else {}),
     }
 
@@ -213,6 +213,7 @@ def start_hand(state):
         p["bet"] = 0
         p["totalBet"] = 0
         p["status"] = "active" if p["chips"] > 0 else "out"
+        p["acted"] = False
     state["deck"] = _shuffle(_full_deck())
     state["community"] = []
     state["pot"] = 0
@@ -264,7 +265,10 @@ def _advance_after_action(state):
     contenders = [p for p in state["players"] if p["status"] in ("active", "allin")]
     if len(contenders) == 1:
         return _finish_hand(state)
-    all_matched = all(p["status"] in ("folded", "out", "allin") or p["bet"] == state["currentBet"] for p in state["players"])
+    all_matched = all(
+        p["status"] in ("folded", "out", "allin") or (p.get("acted") and p["bet"] == state["currentBet"])
+        for p in state["players"]
+    )
     someone_committed = any(p["totalBet"] > 0 for p in state["players"])
     if all_matched and someone_committed:
         return _advance_street(state)
@@ -278,6 +282,7 @@ def _advance_after_action(state):
 def _advance_street(state):
     for p in state["players"]:
         p["bet"] = 0
+        p["acted"] = False
     state["currentBet"] = 0
     state["minRaise"] = BIG_BLIND
     if state["round"] == "preflop":
@@ -324,16 +329,19 @@ def apply_poker_action(state, player_id, action):
 
     if atype == "fold":
         player["status"] = "folded"
+        player["acted"] = True
         state["log"].append(f"{player['name']} 弃牌")
         state["lastAction"] = f"{player['name']} 弃牌"
         return _advance_after_action(state)
     if atype == "check":
         if to_call != 0:
             raise ValueError("当前需要跟注，不能过牌")
+        player["acted"] = True
         state["log"].append(f"{player['name']} 过牌")
         state["lastAction"] = f"{player['name']} 过牌"
         return _advance_after_action(state)
     if atype == "call":
+        player["acted"] = True
         put = min(player["chips"], to_call)
         player["chips"] -= put
         player["bet"] += put
@@ -348,6 +356,7 @@ def apply_poker_action(state, player_id, action):
         amount = int(action.get("amount") or 0)
         raise_to = amount
         is_raise = raise_to > state["currentBet"]
+        player["acted"] = True
         if is_raise:
             min_allowed = state["currentBet"] + state["minRaise"]
             if raise_to < min_allowed and raise_to < player["chips"] + player["bet"]:
@@ -376,6 +385,7 @@ def apply_poker_action(state, player_id, action):
             state["log"].append(f"{player['name']} 跟注 {put}")
         return _advance_after_action(state)
     if atype == "allin":
+        player["acted"] = True
         put = player["chips"]
         player["bet"] += put
         player["totalBet"] += put
@@ -519,6 +529,21 @@ def choose_poker_bot_action(state):
     if strength < fold_threshold:
         return {"type": "fold"}
     return {"type": "call"}
+
+
+def run_one_bot_turn(state):
+    """时间驱动：只让当前行动的人机走一步（思考延迟由调用方控制）。"""
+    if state["status"] != "playing":
+        return state
+    idx = state["currentPlayerIndex"]
+    if idx < 0 or idx >= len(state["players"]):
+        return state
+    bot = state["players"][idx]
+    if not bot.get("isBot") or bot["status"] != "active":
+        return state
+    action = choose_poker_bot_action(state)
+    apply_poker_action(state, bot["id"], action)
+    return state
 
 
 def run_poker_bot_turns(state):
