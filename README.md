@@ -29,33 +29,20 @@ tests/                 引擎测试
 ## 🚀 本地运行
 ```bash
 npm install
-npm run build                              # 构建前端（默认根路径 /）
+npx vite build --config pythonanywhere/frontend/vite.config.ts   # 构建前端
 cd pythonanywhere && pip install flask && python app.py          # 启动后端(5001)
 ```
 
-> 子路径部署（如挂在香料商路站点的 `/poker/` 下）时用：
-> `VITE_BASE=/poker/ npm run build`，前端会自动把静态资源与 API 前缀
-> 改成 `/poker/...`（API 变 `/poker/api/...`）。
-
 ## ✅ 测试
 ```bash
-npx tsc lib/poker.ts --outDir tests/out --module commonjs --target es2020 --skipLibCheck
-Copy-Item tests/out/poker.js tests/out/poker.cjs -Force   # 复制为 .cjs（Windows）
+npx tsc lib/poker.ts --outDir tests/out --module commonjs --target es2022 --skipLibCheck
+# 将 tests/out/poker.js 改名为 .cjs 后：
 node --test tests/poker.test.cjs       # TS 引擎（9 组）
 python pythonanywhere/test_poker.py    # Python 引擎（30 项）
 ```
 
-## ☁️ 部署
-- **独立部署**：`pythonanywhere/` 包上传到任意 PythonAnywhere 账号即可（根路径）。
-- **与香料商路同站（免费方案）**：把 `pythonanywhere/` 下的后端文件放进
-  香料商路部署包的 `poker/` 子目录（含 `__init__.py`），前端用
-  `VITE_BASE=/poker/ npm run build` 构建后放进 `poker/static/`；
-  香料商路的 `app.py` 会自动挂载 `/poker/` 子应用（见香料商路仓库
-  `pythonanywhere/README.md` 的「德州扑克子应用」一节）。
-
 ## 🗺️ 路线
 - [x] 联机 / 人机 / 边池 / 破产补筹 / 观战 / 账号 / 语音 / PWA / 全屏
-- [x] 子路径部署（PythonAnywhere `/poker/`，与香料商路同站共存）
 - [ ] 离线同屏（传设备轮流）
 - [ ] 热点联机（WebRTC 断网多设备）
 - [ ] 更多规则（保险、加注上限、锦标赛模式）

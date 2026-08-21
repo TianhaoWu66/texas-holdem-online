@@ -7,7 +7,3 @@ __pycache__/
 *.db
 *.zip
 .venv/
-
-# TS 测试编译产物
-/out/
-/tests/out/

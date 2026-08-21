@@ -15,11 +15,8 @@ import time
 
 from flask import Flask, g, request, send_from_directory, Response
 
-try:
-    from . import accounts, poker
-except ImportError:  # 直接 python app.py 运行时
-    import accounts
-    import poker
+import accounts
+import poker
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")

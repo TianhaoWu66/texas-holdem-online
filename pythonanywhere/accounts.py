@@ -7,12 +7,9 @@ import re
 import secrets
 import uuid
 
-try:
-    from .profile import DEFAULT_PROFILE_AVATAR, PROFILE_AVATARS
-except ImportError:
-    from profile import DEFAULT_PROFILE_AVATAR, PROFILE_AVATARS
+from profile import DEFAULT_PROFILE_AVATAR, PROFILE_AVATARS
 
-SESSION_COOKIE = "poker_session"
+SESSION_COOKIE = "spice_session"
 SESSION_SECONDS = 60 * 60 * 24 * 30
 PASSWORD_ITERATIONS = 100_000
 
