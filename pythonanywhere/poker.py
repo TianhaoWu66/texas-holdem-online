@@ -172,6 +172,60 @@ def remove_poker_bot(state, bot_id):
 
 
 # ---------- 开牌 ----------
+def take_over_ai_seat(state, name, token, profile=None):
+    """游戏进行中：真人接替一个 AI 席位（优先被离场真人留下的席位，其次常驻人机）。"""
+    seat = None
+    for p in state["players"]:
+        if p.get("isBot") and "leftBy" in p:
+            seat = p
+            break
+    if seat is None:
+        for p in state["players"]:
+            if p.get("isBot"):
+                seat = p
+                break
+    if seat is None:
+        raise ValueError("牌局进行中，暂时没有可接替的席位")
+    old_name = seat["name"]
+    profile = profile or {}
+    seat["name"] = name
+    seat["token"] = token
+    seat["accountId"] = profile.get("accountId")
+    seat["avatar"] = profile.get("avatar")
+    seat.pop("isBot", None)
+    seat.pop("botDifficulty", None)
+    seat.pop("leftBy", None)
+    state["log"].append(f"{name} 加入了牌局，接替了 {old_name} 的席位")
+    return seat
+
+
+def leave_to_bot(state, player_id):
+    """中途离场：真人席位交给 AI 代管（保留席位与身份，可回来接替）；大厅里直接移除。"""
+    player = next((p for p in state["players"] if p["id"] == player_id), None)
+    if player is None:
+        raise ValueError("找不到这个玩家")
+    if player.get("isBot"):
+        return player
+    if state["status"] == "lobby":
+        state["players"].remove(player)
+        for i, p in enumerate(state["players"]):
+            p["color"] = PLAYER_COLORS[i]
+        if state["hostId"] == player["id"] and state["players"]:
+            state["hostId"] = state["players"][0]["id"]
+        state["log"].append(f"{player['name']} 离开了牌局")
+        return player
+    player["isBot"] = True
+    player["botDifficulty"] = "normal"
+    player["leftBy"] = player["id"]
+    if state["hostId"] == player["id"]:
+        human = next((p for p in state["players"] if not p.get("isBot")), None)
+        if human:
+            state["hostId"] = human["id"]
+    state["log"].append(f"{player['name']} 暂时离开，由 AI 代管")
+    return player
+
+
+
 def _active_players(state):
     return [p for p in state["players"] if p["status"] in ("active", "allin")]
 

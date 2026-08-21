@@ -220,6 +220,13 @@ export default function PokerGame() {
     setMyPlayerId("");
   };
 
+  // 中途离场：席位交给 AI 代管，可随时回来接替
+  const handleLeave = async () => {
+    if (!room) return;
+    await request({ command: "leave", code: room.code, token });
+    exitGame();
+  };
+
   const current = room?.state.players[room?.state.currentPlayerIndex ?? -1];
   const legal = room && me ? legalPokerActions(room.state, me.id) : [];
   const canAct = !!room && !!me && room.state.status === "playing" && current?.id === me.id && legal.length > 0;
@@ -274,7 +281,7 @@ export default function PokerGame() {
           <div className="divider"><span>或加入朋友</span></div>
           <div className="join-row">
             <input aria-label="房间码" value={joinCode} maxLength={6} onChange={(e) => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))} placeholder="六位房间码" />
-            <button disabled={busy || !name.trim() || joinCode.length !== 6} onClick={() => request({ command: "join", name, code: joinCode })}>加入</button>
+            <button disabled={busy || !name.trim() || joinCode.length !== 6} onClick={() => request({ command: "join", name, code: joinCode, token: typeof window !== "undefined" ? localStorage.getItem(`poker-token-${joinCode}`) ?? "" : "" })}>加入</button>
           </div>
           <div className="divider"><span>或观战</span></div>
           <div className="join-row">
@@ -298,7 +305,7 @@ export default function PokerGame() {
     <header className="game-header">
       <div className="wordmark">🂠 德州风云</div>
       <div className="round-info"><span>第 {state.handNumber} 手</span><b>{revealing ? "摊牌中…" : isHandEnded ? "本手结束" : state.status === "lobby" ? "等待开局" : canAct ? "轮到你行动" : isBotTurn ? `${current?.name} 🤖 思考中…` : state.lastAction}</b>{isSpectator && <em>观战中</em>}</div>
-      <div className="header-actions"><button className="room-code mini" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${room.code}`).then(() => setError("已复制邀请链接"))}><small>房间</small>{room.code}<span>复制</span></button></div>
+      <div className="header-actions"><button className="room-code mini" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${room.code}`).then(() => setError("已复制邀请链接"))}><small>房间</small>{room.code}<span>复制</span></button><button className="leave-btn mini" disabled={busy} onClick={handleLeave}>离开</button></div>
     </header>
     {showRotateHint && <div className="rotate-hint" onClick={() => setShowRotateHint(false)}>🔄 横屏体验更佳，对手座位更宽敞</div>}
 

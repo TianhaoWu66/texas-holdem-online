@@ -234,15 +234,26 @@ def room_post():
                 raise ValueError("请输入昵称")
             join_token = token or secrets.token_urlsafe(24)
             if requester is not None:
+                # 重新加入：回到自己的席位，恢复真人控制（离场时可能被 AI 代管）
+                had_bot = requester.get("isBot")
+                requester.pop("isBot", None)
+                requester.pop("botDifficulty", None)
+                requester.pop("leftBy", None)
                 if account:
                     requester["name"] = account["nickname"]
                     requester["avatar"] = account["avatar"]
                 joined = requester
-                version = room["version"] if not account else _save_room(code, state, room["version"])
-            else:
+                version = _save_room(code, state, room["version"]) if (had_bot or account) else room["version"]
+            elif state["status"] == "lobby":
                 poker.add_poker_player(state, name, join_token, profile)
                 joined = state["players"][-1]
                 version = _save_room(code, state, room["version"])
+            elif state["status"] in ("playing", "handEnded"):
+                # 中途加入：接替一个 AI 席位
+                joined = poker.take_over_ai_seat(state, name, join_token, profile)
+                version = _save_room(code, state, room["version"])
+            else:
+                raise ValueError("牌局已结束，无法加入")
             db.commit()
             return _json_response({
                 "code": code, "version": version,
@@ -286,6 +297,10 @@ def room_post():
             return _json_response({"code": code, "version": version, "spectatorId": spectator_id, "state": public_poker_state(state, None, True)})
         elif command == "unspectate":
             poker.remove_spectator(state, str(body.get("spectatorId") or ""))
+        elif command == "leave":
+            if not requester:
+                raise ValueError("玩家身份已失效，请重新加入")
+            poker.leave_to_bot(state, requester["id"])
         else:
             raise ValueError("未知操作")
 
