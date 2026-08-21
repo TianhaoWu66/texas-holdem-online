@@ -123,11 +123,13 @@ def _save_room(code, state, version):
 
 
 def public_poker_state(state, viewer_id=None, is_spectator=False):
-    """隐藏他人底牌；观战者看不到任何底牌。"""
+    """隐藏他人底牌；观战者看不到任何底牌。摊牌时亮出仍在场玩家的底牌，让所有人可见。"""
+    showdown = state.get("round") == "showdown"
     players = []
     for p in state["players"]:
         copy = dict(p)
-        if is_spectator or (viewer_id is not None and p["id"] != viewer_id):
+        reveal = showdown and p["status"] in ("active", "allin")
+        if not reveal and (is_spectator or (viewer_id is not None and p["id"] != viewer_id)):
             copy["hole"] = []
         copy.pop("token", None)
         copy.pop("accountId", None)

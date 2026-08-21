@@ -303,7 +303,7 @@ export default function PokerGame() {
             <div className="poker-strip">
               <span className="avatar" style={{ background: p.color }}>{p.avatar ?? p.name.slice(0, 1)}</span>
               <div className="player-meta"><b>{p.name}{p.isBot && <small> · 人机</small>}</b><span className="chip-count">{p.chips}</span></div>
-              <div className="hole-cards">{p.hole.map((c, i) => <CardView key={i} card={c} />)}</div>
+              <div className="hole-cards">{(revealing ? [] : p.hole).map((c, i) => <CardView key={i} card={c} />)}</div>
               {p.bankruptcies > 0 && <span className="bust-badge" title={`破产 ${p.bankruptcies} 次`}>💥{p.bankruptcies}</span>}
             </div>
             <div className="seat-badges">
