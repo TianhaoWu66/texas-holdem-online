@@ -48,6 +48,7 @@ button:disabled { cursor: not-allowed; opacity: .4; }
 .join-row input { flex: 1; min-width: 0; }
 .error-box { margin-top: 12px; padding: 10px 12px; border-radius: 6px; color: #8f2e27; background: #fbe7df; font: 13px system-ui, sans-serif; }
 .toast { position: fixed; z-index: 30; top: 86px; left: 50%; transform: translateX(-50%); background: #8b3028; color: white; border-radius: 6px; padding: 11px 18px; font: 13px system-ui, sans-serif; box-shadow: 0 18px 50px rgba(0,0,0,.3); cursor: pointer; }
+.rotate-hint { position: fixed; z-index: 40; bottom: 132px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.78); color: #ffe9b8; border-radius: 999px; padding: 8px 16px; font: 700 13px system-ui, sans-serif; box-shadow: 0 8px 24px rgba(0,0,0,.4); cursor: pointer; white-space: nowrap; }
 
 /* ===== 牌桌 ===== */
 .game-shell { height: 100vh; height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--felt); background-image: radial-gradient(ellipse at center, rgba(255,255,255,.06), transparent 65%); }
@@ -120,6 +121,38 @@ button:disabled { cursor: not-allowed; opacity: .4; }
   .poker-strip .avatar { width: 28px; height: 28px; }
   .player-seat.slot-left, .player-seat.slot-right { top: 40%; }
   .quick-chat { display: none; }
+}
+
+/* 手机横屏：座位分散到两侧与顶部两端，避免挤在一起 */
+@media (max-width: 900px) and (orientation: landscape) {
+  .game-header { min-height: 40px; padding: 0 12px; }
+  .wordmark { font-size: 13px; }
+  .round-info { font-size: 11px; }
+  .room-code.mini { min-height: 26px !important; padding: 3px 10px !important; font-size: 12px !important; }
+  .player-seat.slot-top { top: 6px; left: 50%; transform: translateX(-50%); }
+  .player-seat.slot-top-left { top: 6px; left: 5%; }
+  .player-seat.slot-top-right { top: 6px; right: 5%; }
+  .player-seat.slot-left { top: 42%; left: 8px; transform: translateY(-50%); }
+  .player-seat.slot-right { top: 42%; right: 8px; transform: translateY(-50%); }
+  .poker-strip { padding: 4px 8px; gap: 6px; }
+  .poker-strip .avatar { width: 26px; height: 26px; font-size: 12px; }
+  .player-meta b { font-size: 12px; }
+  .chip-count { font-size: 12px; }
+  .hole-cards .poker-card { width: 36px; height: 50px; }
+  .hole-cards .poker-card .rank { font-size: 13px; }
+  .hole-cards .poker-card .suit { font-size: 15px; }
+  .board-center { top: 42%; gap: 6px; }
+  .community-row { gap: 5px; }
+  .poker-card { width: 40px; height: 56px; }
+  .poker-card .rank { font-size: 13px; }
+  .poker-card .suit { font-size: 14px; }
+  .me-area { padding: 6px 12px 8px; }
+  .me-strip { margin-bottom: 4px; }
+  .me-strip .avatar { width: 32px; height: 32px; font-size: 14px; }
+  .my-hole .poker-card { width: 38px; height: 54px; }
+  .action-bar .act, .action-bar .primary { min-height: 32px; padding: 0 12px; font-size: 13px; }
+  .bet-stepper button { min-height: 28px; width: 28px; }
+  .bet-stepper b { min-width: 44px; font-size: 13px; }
 }
 
 /* 大厅人机 */

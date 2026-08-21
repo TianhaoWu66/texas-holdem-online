@@ -49,6 +49,7 @@ export default function PokerGame() {
   const [spectateName, setSpectateName] = useState("");
   const [betAmount, setBetAmount] = useState(BIG_BLIND);
   const [activeChat, setActiveChat] = useState<{ playerId: string; phrase: string } | null>(null);
+  const [showRotateHint, setShowRotateHint] = useState(false);
   const observedChatId = useRef<number>(0);
   const chatPlayerId = useRef<string>("");
   // 全下摊牌逐条翻公共牌：shownCommunity=当前显示到第几张（null=全部）
@@ -174,6 +175,24 @@ export default function PokerGame() {
 
   useEffect(() => () => { revealTimers.current.forEach((t) => window.clearTimeout(t)); }, []);
 
+  // 手机竖屏进牌桌时提示横屏（5 秒后自动消失；横屏后隐藏）
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 900px) and (orientation: portrait)");
+    let timer: number | undefined;
+    const update = () => {
+      if (mq.matches) {
+        setShowRotateHint(true);
+        if (timer) window.clearTimeout(timer);
+        timer = window.setTimeout(() => setShowRotateHint(false), 5000);
+      } else {
+        setShowRotateHint(false);
+      }
+    };
+    update();
+    mq.addEventListener("change", update);
+    return () => { mq.removeEventListener("change", update); if (timer) window.clearTimeout(timer); };
+  }, []);
+
   const accountRequest = async (action: "register" | "login" | "logout", avatar?: string) => {
     setAuthBusy(true); setAuthError("");
     try {
@@ -281,6 +300,7 @@ export default function PokerGame() {
       <div className="round-info"><span>第 {state.handNumber} 手</span><b>{revealing ? "摊牌中…" : isHandEnded ? "本手结束" : state.status === "lobby" ? "等待开局" : canAct ? "轮到你行动" : isBotTurn ? `${current?.name} 🤖 思考中…` : state.lastAction}</b>{isSpectator && <em>观战中</em>}</div>
       <div className="header-actions"><button className="room-code mini" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${room.code}`).then(() => setError("已复制邀请链接"))}><small>房间</small>{room.code}<span>复制</span></button></div>
     </header>
+    {showRotateHint && <div className="rotate-hint" onClick={() => setShowRotateHint(false)}>🔄 横屏体验更佳，对手座位更宽敞</div>}
 
     <section className="table">
       {/* 公共牌 + 底池 */}
