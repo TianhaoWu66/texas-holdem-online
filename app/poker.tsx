@@ -285,6 +285,9 @@ export default function PokerGame() {
         })}
       </div>
 
+
+    </section>
+
       {/* 我的手牌区（底部） */}
       {me && <section className="me-area">
         <div className="me-strip">
@@ -320,6 +323,5 @@ export default function PokerGame() {
         </div>
         {error && <div className="toast" onClick={() => setError("")}>{error}</div>}
       </section>}
-    </section>
   </main>;
 }
