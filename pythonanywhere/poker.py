@@ -349,8 +349,8 @@ def apply_poker_action(state, player_id, action):
         state["pot"] += put
         if player["chips"] == 0:
             player["status"] = "allin"
-        state["log"].append(f"{player['name']} 全下跟注 {put}" if player["status"] == "allin" else f"{player['name']} 跟注 {put}")
-        state["lastAction"] = f"{player['name']} 全下" if player["status"] == "allin" else f"{player['name']} 跟注"
+        state["log"].append(f"{player['name']} All in 跟注 {put}" if player["status"] == "allin" else f"{player['name']} 跟注 {put}")
+        state["lastAction"] = f"{player['name']} All in" if player["status"] == "allin" else f"{player['name']} 跟注"
         return _advance_after_action(state)
     if atype in ("bet", "raise"):
         amount = int(action.get("amount") or 0)
@@ -373,7 +373,7 @@ def apply_poker_action(state, player_id, action):
             if player["chips"] == 0:
                 player["status"] = "allin"
             state["log"].append(f"{player['name']} {'下注' if atype == 'bet' else '加注到'} {raise_to}")
-            state["lastAction"] = f"{player['name']} 全下 {raise_to}" if player["status"] == "allin" else f"{player['name']} {'下注' if atype == 'bet' else '加注到'} {raise_to}"
+            state["lastAction"] = f"{player['name']} All in {raise_to}" if player["status"] == "allin" else f"{player['name']} {'下注' if atype == 'bet' else '加注到'} {raise_to}"
         else:
             put = min(player["chips"], to_call)
             player["chips"] -= put
@@ -396,8 +396,8 @@ def apply_poker_action(state, player_id, action):
         if player["bet"] > state["currentBet"]:
             state["minRaise"] = player["bet"] - old_bet
             state["currentBet"] = player["bet"]
-        state["log"].append(f"{player['name']} 全下 {player['bet']}")
-        state["lastAction"] = f"{player['name']} 全下"
+        state["log"].append(f"{player['name']} All in {player['bet']}")
+        state["lastAction"] = f"{player['name']} All in"
         return _advance_after_action(state)
     raise ValueError("未知操作")
 

@@ -332,8 +332,8 @@ export function applyPokerAction(state: PokerGameState, playerId: string, action
     player.totalBet += put;
     state.pot += put;
     if (player.chips === 0) player.status = "allin";
-    state.log.push(player.status === "allin" ? `${player.name} 全下跟注 ${put}` : `${player.name} 跟注 ${put}`);
-    state.lastAction = player.status === "allin" ? `${player.name} 全下` : `${player.name} 跟注`;
+    state.log.push(player.status === "allin" ? `${player.name} All in 跟注 ${put}` : `${player.name} 跟注 ${put}`);
+    state.lastAction = player.status === "allin" ? `${player.name} All in` : `${player.name} 跟注`;
     return advanceAfterAction(state);
   }
   if (action.type === "bet" || action.type === "raise") {
@@ -356,7 +356,7 @@ export function applyPokerAction(state: PokerGameState, playerId: string, action
       state.currentBet = raiseTo;
       if (player.chips === 0) player.status = "allin";
       state.log.push(`${player.name} ${action.type === "bet" ? "下注" : "加注到"} ${raiseTo}`);
-      state.lastAction = player.status === "allin" ? `${player.name} 全下 ${raiseTo}` : `${player.name} ${action.type === "bet" ? "下注" : "加注到"} ${raiseTo}`;
+      state.lastAction = player.status === "allin" ? `${player.name} All in ${raiseTo}` : `${player.name} ${action.type === "bet" ? "下注" : "加注到"} ${raiseTo}`;
     } else {
       // bet 到等于 currentBet = call
       const put = Math.min(player.chips, toCall);
@@ -382,8 +382,8 @@ export function applyPokerAction(state: PokerGameState, playerId: string, action
       state.minRaise = player.bet - oldBet;
       state.currentBet = player.bet;
     }
-    state.log.push(`${player.name} 全下 ${player.bet}`);
-    state.lastAction = `${player.name} 全下`;
+    state.log.push(`${player.name} All in ${player.bet}`);
+    state.lastAction = `${player.name} All in`;
     return advanceAfterAction(state);
   }
   throw new Error("未知操作");

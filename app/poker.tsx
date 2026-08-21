@@ -310,7 +310,7 @@ export default function PokerGame() {
               {isDealer && <span className="dealer-chip">D</span>}
               {p.bet > 0 && <span className="bet-chip">{p.bet}</span>}
               {p.status === "folded" && <span className="folded-chip">弃牌</span>}
-              {p.status === "allin" && <span className="allin-chip">全下</span>}
+              {p.status === "allin" && <span className="allin-chip">All in</span>}
               {activeChat?.playerId === p.id && <span className="speech-chip">{activeChat.phrase}</span>}
               {isCurrent && p.isBot && <span className="thinking-badge">🤖 思考中</span>}
             </div>
@@ -344,7 +344,7 @@ export default function PokerGame() {
               <b>{betAmount}</b>
               <button disabled={!canAct} onClick={() => setBetAmount((v) => Math.min(me.chips + me.bet, Math.ceil(v * 2)))}>＋</button>
               <button className="mini" disabled={!canAct} onClick={() => setBetAmount(Math.min(me.chips + me.bet, room.state.currentBet + room.state.minRaise * 3))}>3×</button>
-              <button className="mini" disabled={!canAct} onClick={() => sendAction({ type: "allin" })}>全下</button>
+              <button className="mini" disabled={!canAct} onClick={() => sendAction({ type: "allin" })}>All in</button>
             </div>
           </>}
           {state.status === "handEnded" && !revealing && <>

@@ -63,7 +63,7 @@ button:disabled { cursor: not-allowed; opacity: .4; }
 .pot-display { background: rgba(0,0,0,.35); color: #ffe9b8; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 6px 18px; font: 700 15px system-ui, sans-serif; }
 .pot-display span { margin-right: 8px; opacity: .7; font-size: 12px; }
 .community-row { display: flex; gap: 8px; }
-.poker-card { width: 52px; height: 72px; background: #fff; border: 1px solid #d8cfc0; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,.3); font-weight: 700; }
+.poker-card { width: 52px; height: 72px; background: #fff; color: var(--ink); border: 1px solid #d8cfc0; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,.3); font-weight: 700; }
 .poker-card .rank { font-size: 16px; }
 .poker-card .suit { font-size: 18px; }
 .poker-card.red { color: #c0392b; }
