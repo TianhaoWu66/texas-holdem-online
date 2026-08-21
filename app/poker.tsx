@@ -51,6 +51,11 @@ export default function PokerGame() {
   const [activeChat, setActiveChat] = useState<{ playerId: string; phrase: string } | null>(null);
   const observedChatId = useRef<number>(0);
   const chatPlayerId = useRef<string>("");
+  // 全下摊牌逐条翻公共牌：shownCommunity=当前显示到第几张（null=全部）
+  const [shownCommunity, setShownCommunity] = useState<number | null>(null);
+  const prevCommunityLen = useRef<number>(0);
+  const seenHandRef = useRef<number>(-1);
+  const revealTimers = useRef<number[]>([]);
 
   const room = serverRoom;
   const me = room?.state.players.find((p) => p.id === myPlayerId);
@@ -144,6 +149,30 @@ export default function PokerGame() {
       window.setTimeout(() => setActiveChat(null), 2600);
     }
   }, [room?.code, room?.state]);
+
+  // 全下摊牌：公共牌逐条翻（先 3 张，再 1，再 1），最后再亮结果
+  useEffect(() => {
+    if (!room?.state) return;
+    const cur = room.state.community.length;
+    const prev = prevCommunityLen.current;
+    const hand = room.state.handNumber;
+    const wasWatching = seenHandRef.current === hand;
+    seenHandRef.current = hand;
+    prevCommunityLen.current = cur;
+    if (cur === prev) return;
+    const clearTimers = () => { revealTimers.current.forEach((t) => window.clearTimeout(t)); revealTimers.current = []; };
+    if (wasWatching && cur > prev && cur - prev >= 2 && room.state.status === "handEnded") {
+      clearTimers();
+      setShownCommunity(Math.min(3, cur));
+      revealTimers.current.push(window.setTimeout(() => setShownCommunity((v) => (v === null ? null : Math.min(4, cur))), 900));
+      revealTimers.current.push(window.setTimeout(() => setShownCommunity(cur), 1800));
+    } else {
+      clearTimers();
+      setShownCommunity(null);
+    }
+  }, [room]);
+
+  useEffect(() => () => { revealTimers.current.forEach((t) => window.clearTimeout(t)); }, []);
 
   const accountRequest = async (action: "register" | "login" | "logout", avatar?: string) => {
     setAuthBusy(true); setAuthError("");
@@ -242,11 +271,13 @@ export default function PokerGame() {
   const state = room.state;
   const community = state.community;
   const isHandEnded = state.status === "handEnded";
+  const shown = shownCommunity ?? community.length;
+  const revealing = shown < community.length;
 
   return <main className={`game-shell ${isSpectator ? "spectator" : ""}`}>
     <header className="game-header">
       <div className="wordmark">🂠 德州风云</div>
-      <div className="round-info"><span>第 {state.handNumber} 手</span><b>{isHandEnded ? "本手结束" : state.status === "lobby" ? "等待开局" : state.lastAction}</b>{isSpectator && <em>观战中</em>}</div>
+      <div className="round-info"><span>第 {state.handNumber} 手</span><b>{revealing ? "摊牌中…" : isHandEnded ? "本手结束" : state.status === "lobby" ? "等待开局" : state.lastAction}</b>{isSpectator && <em>观战中</em>}</div>
       <div className="header-actions"><button className="room-code mini" onClick={() => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${room.code}`).then(() => setError("已复制邀请链接"))}><small>房间</small>{room.code}<span>复制</span></button></div>
     </header>
 
@@ -255,7 +286,7 @@ export default function PokerGame() {
       <div className="board-center">
         <div className="pot-display"><span>底池</span><b>{state.pot}</b></div>
         <div className="community-row">
-          {[0, 1, 2, 3, 4].map((i) => <CardView key={i} card={community[i] ?? null} />)}
+          {[0, 1, 2, 3, 4].map((i) => <CardView key={i} card={i >= shown ? null : community[i] ?? null} />)}
         </div>
         {state.round === "showdown" && <div className="showdown-label">摊牌</div>}
       </div>
@@ -314,7 +345,7 @@ export default function PokerGame() {
               <button className="mini" disabled={!canAct} onClick={() => sendAction({ type: "allin" })}>全下</button>
             </div>
           </>}
-          {state.status === "handEnded" && <>
+          {state.status === "handEnded" && !revealing && <>
             <div className="result-line">{state.winnerIds.length > 0 ? state.winnerIds.map((id) => state.players.find((p) => p.id === id)?.name).join("、") : "—"} 赢得本手</div>
             {isHost && <button className="primary" disabled={busy} onClick={() => request({ command: "start", code: room.code, token })}>下一手</button>}
           </>}
