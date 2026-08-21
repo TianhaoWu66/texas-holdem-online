@@ -8,8 +8,15 @@ import {
 type RoomResponse = { code: string; version: number; token?: string; playerId?: string; spectatorId?: string; state: PokerGameState; error?: string };
 type AccountProfile = { id: string; username: string; nickname: string; avatar: string };
 
-const CHAT_PHRASES = ["老叟戏顽童", "神之一手", "你的计谋被我识破了"];
-const CHAT_AUDIO: Record<string, string> = {};
+const CHAT_PHRASES = ["老叟戏顽童", "神之一手", "你的计谋被我识破了", "能不能快点", "九之十二 凌空罩", "泥肘"];
+const CHAT_AUDIO: Record<string, string> = {
+  "老叟戏顽童": "/audio/laoshouxiwantong.mp3",
+  "神之一手": "/audio/shenzhiyishou.mp3",
+  "你的计谋被我识破了": "/audio/jimou.mp3",
+  "能不能快点": "/audio/nengbukuaidian.mp3",
+  "九之十二 凌空罩": "/audio/lingkongzhao.mp3",
+  "泥肘": "/audio/nizhou.mp3",
+};
 
 function speakChatPhrase(phrase: string) {
   if (!("speechSynthesis" in window)) return;
@@ -50,6 +57,7 @@ export default function PokerGame() {
   const [betAmount, setBetAmount] = useState(BIG_BLIND);
   const [activeChat, setActiveChat] = useState<{ playerId: string; phrase: string } | null>(null);
   const [showRotateHint, setShowRotateHint] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const observedChatId = useRef<number>(0);
   const chatPlayerId = useRef<string>("");
   // 全下摊牌逐条翻公共牌：shownCommunity=当前显示到第几张（null=全部）
@@ -379,7 +387,12 @@ export default function PokerGame() {
             {isHost && <button className="primary" disabled={busy} onClick={() => request({ command: "start", code: room.code, token })}>下一手</button>}
           </>}
           {isSpectator && <div className="spectator-note">👁 观战模式：仅能看到公共牌与筹码</div>}
-          {!isSpectator && <div className="quick-chat">{CHAT_PHRASES.map((phrase) => <button key={phrase} disabled={busy} onClick={() => request({ command: "chat", code: room.code, token, phrase })}>🔊{phrase}</button>)}</div>}
+          {!isSpectator && <div className="quick-chat">
+            <button className="voice-toggle" disabled={busy} onClick={() => setVoiceOpen((v) => !v)}>🔊 语音</button>
+            {voiceOpen && <div className="voice-menu">
+              {CHAT_PHRASES.map((phrase) => <button key={phrase} disabled={busy} onClick={() => { setVoiceOpen(false); request({ command: "chat", code: room.code, token, phrase }); }}>{phrase}</button>)}
+            </div>}
+          </div>}
         </div>
         {error && <div className="toast" onClick={() => setError("")}>{error}</div>}
       </section>}

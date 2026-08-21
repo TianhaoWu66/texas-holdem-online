@@ -11,3 +11,6 @@ __pycache__/
 # TS 测试编译产物
 /out/
 /tests/out/
+
+# 真人语音源文件（只部署、不入库）
+pythonanywhere/frontend/public/audio/

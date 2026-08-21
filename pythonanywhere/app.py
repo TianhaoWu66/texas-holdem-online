@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_account_sessions_expires_at ON account_sessions(e
 
 app = Flask(__name__)
 
-CHAT_PHRASES = ["老叟戏顽童", "神之一手", "你的计谋被我识破了"]
+CHAT_PHRASES = ["老叟戏顽童", "神之一手", "你的计谋被我识破了", "能不能快点", "九之十二 凌空罩", "泥肘"]
 BOT_DELAY_MS = 3000  # 人机思考延迟：轮到人机后至少等待这么久才出牌
 
 
