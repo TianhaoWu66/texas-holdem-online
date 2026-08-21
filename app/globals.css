@@ -85,9 +85,9 @@ button:disabled { cursor: not-allowed; opacity: .4; }
 .player-meta b small { color: #ffe9b8; }
 .chip-count { font: 700 14px system-ui, sans-serif; color: #ffe9b8; }
 .hole-cards { display: flex; gap: 2px; }
-.hole-cards .poker-card { width: 30px; height: 42px; }
-.hole-cards .poker-card .rank { font-size: 11px; }
-.hole-cards .poker-card .suit { font-size: 12px; }
+.hole-cards .poker-card { width: 40px; height: 56px; }
+.hole-cards .poker-card .rank { font-size: 15px; }
+.hole-cards .poker-card .suit { font-size: 16px; }
 .bust-badge { background: #b8503c; color: #fff; border-radius: 999px; padding: 2px 8px; font: 700 11px system-ui, sans-serif; }
 .seat-badges { display: flex; gap: 4px; flex-wrap: wrap; }
 .seat-badges span { font: 700 11px system-ui, sans-serif; padding: 2px 8px; border-radius: 999px; }
@@ -117,7 +117,6 @@ button:disabled { cursor: not-allowed; opacity: .4; }
 
 @media (max-width: 900px) {
   .landing-shell { flex-direction: column; padding: 24px; gap: 20px; }
-  .player-seat .poker-strip .hole-cards { display: none; }
   .poker-strip .avatar { width: 28px; height: 28px; }
   .player-seat.slot-left, .player-seat.slot-right { top: 40%; }
   .quick-chat { display: none; }
