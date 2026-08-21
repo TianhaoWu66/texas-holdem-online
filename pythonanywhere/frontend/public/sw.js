@@ -1,5 +1,6 @@
 const CACHE = "texas-holdem-v1";
-const PRECACHE = ["/", "/manifest.webmanifest", "/favicon.svg"];
+const BASE = self.location.pathname.replace(/\/sw\.js$/, "");
+const PRECACHE = [BASE + "/", BASE + "/manifest.webmanifest", BASE + "/favicon.svg"];
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
@@ -15,7 +16,7 @@ self.addEventListener("fetch", (event) => {
       const copy = response.clone();
       caches.open(CACHE).then((cache) => cache.put(request, copy));
       return response;
-    }).catch(() => caches.match(request).then((hit) => hit || caches.match("/"))));
+    }).catch(() => caches.match(request).then((hit) => hit || caches.match(BASE + "/"))));
     return;
   }
   event.respondWith(caches.match(request).then((hit) => hit || fetch(request).then((response) => {

@@ -8,6 +8,9 @@ import {
 type RoomResponse = { code: string; version: number; token?: string; playerId?: string; spectatorId?: string; state: PokerGameState; error?: string };
 type AccountProfile = { id: string; username: string; nickname: string; avatar: string };
 
+// API 前缀：根路径部署为 /api；子路径部署（如 /poker/）为 /poker/api
+const API_BASE = `${import.meta.env.VITE_BASE ?? "/"}api`;
+
 const CHAT_PHRASES = ["老叟戏顽童", "神之一手", "你的计谋被我识破了"];
 const CHAT_AUDIO: Record<string, string> = {};
 
@@ -68,7 +71,7 @@ export default function PokerGame() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/auth", { cache: "no-store" }).then(async (response) => {
+    fetch(`${API_BASE}/auth`, { cache: "no-store" }).then(async (response) => {
       const data = await response.json() as { user?: AccountProfile | null };
       if (data.user) { setAccount(data.user); setName(data.user.nickname); }
     }).catch(() => {}).finally(() => setAuthReady(true));
@@ -77,7 +80,7 @@ export default function PokerGame() {
   const request = useCallback(async (body: Record<string, unknown>) => {
     setBusy(true); setError("");
     try {
-      const response = await fetch("/api/room", {
+      const response = await fetch(`${API_BASE}/room`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
@@ -100,7 +103,7 @@ export default function PokerGame() {
       const params = new URLSearchParams({ code });
       if (myPlayerId) params.set("viewerId", myPlayerId);
       if (spectatorId) params.set("spectatorId", spectatorId);
-      const response = await fetch(`/api/room?${params.toString()}`, { cache: "no-store" });
+      const response = await fetch(`${API_BASE}/room?${params.toString()}`, { cache: "no-store" });
       const data = await response.json() as RoomResponse;
       if (!response.ok) throw new Error(data.error || "读取房间失败");
       setServerRoom((current) => !current || data.version >= current.version ? data : current);
@@ -148,7 +151,7 @@ export default function PokerGame() {
   const accountRequest = async (action: "register" | "login" | "logout", avatar?: string) => {
     setAuthBusy(true); setAuthError("");
     try {
-      const response = await fetch("/api/auth", {
+      const response = await fetch(`${API_BASE}/auth`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, username, password, nickname: registerNickname, avatar }),
       });

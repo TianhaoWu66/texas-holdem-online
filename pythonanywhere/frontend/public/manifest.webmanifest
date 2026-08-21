@@ -2,10 +2,10 @@
   "name": "德州风云｜在线扑克",
   "short_name": "德州风云",
   "description": "无限注德州扑克：边池结算、破产补筹、观战、人机对战。",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0e2a1d",
   "theme_color": "#48231f",
-  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+  "icons": [{ "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

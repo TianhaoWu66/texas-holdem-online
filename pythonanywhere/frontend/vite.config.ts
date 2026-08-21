@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL(".", import.meta.url));
 
 export default defineConfig({
   root,
-  base: "/",
+  base: process.env.VITE_BASE || "/",
   plugins: [react()],
   css: {
     postcss: {

@@ -9,7 +9,7 @@ export type AccountProfile = {
 };
 
 type StoredAccount = AccountProfile & { password_hash: string; password_salt: string };
-const SESSION_COOKIE = "spice_session";
+const SESSION_COOKIE = "poker_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 30;
 const PASSWORD_ITERATIONS = 100_000;
 
