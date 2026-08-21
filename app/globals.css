@@ -102,6 +102,7 @@ button:disabled { cursor: not-allowed; opacity: .4; }
 /* ===== 底部操作区 ===== */
 .me-area { flex: 0 0 auto; background: rgba(245,235,216,.97); border-top: 2px solid #c18b3d; padding: 10px 18px 12px; }
 .me-strip { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.me-area .chip-count { color: var(--wine); }  /* 我方底部面板是浅色底，筹码数用深色才看得清 */
 .me-strip .avatar { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; }
 .my-hole { display: flex; gap: 6px; margin-left: auto; }
 .my-hole .poker-card { width: 46px; height: 64px; }
