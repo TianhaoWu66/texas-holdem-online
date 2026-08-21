@@ -58,6 +58,7 @@ export default function PokerGame() {
   const [activeChat, setActiveChat] = useState<{ playerId: string; phrase: string } | null>(null);
   const [showRotateHint, setShowRotateHint] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const selfSentPhrase = useRef("");
   const observedChatId = useRef<number>(0);
   const chatPlayerId = useRef<string>("");
   // 全下摊牌逐条翻公共牌：shownCommunity=当前显示到第几张（null=全部）
@@ -152,9 +153,13 @@ export default function PokerGame() {
     if (fresh.length) {
       const last = fresh[fresh.length - 1];
       setActiveChat(last);
-      const audioUrl = CHAT_AUDIO[last.phrase];
-      if (audioUrl) new Audio(audioUrl).play().catch(() => speakChatPhrase(last.phrase));
-      else speakChatPhrase(last.phrase);
+      if (last.playerId === myPlayerId && selfSentPhrase.current === last.phrase) {
+        selfSentPhrase.current = ""; // 自己刚发过，已即时播放，避免重复
+      } else {
+        const audioUrl = CHAT_AUDIO[last.phrase];
+        if (audioUrl) new Audio(audioUrl).play().catch(() => speakChatPhrase(last.phrase));
+        else speakChatPhrase(last.phrase);
+      }
       window.setTimeout(() => setActiveChat(null), 2600);
     }
   }, [room?.code, room?.state]);
@@ -346,7 +351,7 @@ export default function PokerGame() {
               {p.bet > 0 && <span className="bet-chip">{p.bet}</span>}
               {p.status === "folded" && <span className="folded-chip">弃牌</span>}
               {p.status === "allin" && <span className="allin-chip">All in</span>}
-              {activeChat?.playerId === p.id && <span className="speech-chip">{activeChat.phrase}</span>}
+              {activeChat?.playerId === p.id && <button className="speech-chip" onClick={() => { const u = CHAT_AUDIO[activeChat.phrase]; if (u) new Audio(u).play().catch(() => speakChatPhrase(activeChat.phrase)); else speakChatPhrase(activeChat.phrase); }}>🔊 {activeChat.phrase}</button>}
               {isCurrent && p.isBot && <span className="thinking-badge">🤖 思考中</span>}
             </div>
           </div>;
@@ -390,7 +395,7 @@ export default function PokerGame() {
           {!isSpectator && <div className="quick-chat">
             <button className="voice-toggle" disabled={busy} onClick={() => setVoiceOpen((v) => !v)}>🔊 语音</button>
             {voiceOpen && <div className="voice-menu">
-              {CHAT_PHRASES.map((phrase) => <button key={phrase} disabled={busy} onClick={() => { setVoiceOpen(false); request({ command: "chat", code: room.code, token, phrase }); }}>{phrase}</button>)}
+              {CHAT_PHRASES.map((phrase) => <button key={phrase} disabled={busy} onClick={() => { setVoiceOpen(false); selfSentPhrase.current = phrase; const audioUrl = CHAT_AUDIO[phrase]; if (audioUrl) new Audio(audioUrl).play().catch(() => speakChatPhrase(phrase)); else speakChatPhrase(phrase); request({ command: "chat", code: room.code, token, phrase }); }}>{phrase}</button>)}
             </div>}
           </div>}
         </div>

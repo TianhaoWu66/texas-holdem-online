@@ -125,7 +125,6 @@ button:disabled { cursor: not-allowed; opacity: .4; }
   .landing-shell { flex-direction: column; padding: 24px; gap: 20px; }
   .poker-strip .avatar { width: 28px; height: 28px; }
   .player-seat.slot-left, .player-seat.slot-right { top: 40%; }
-  .quick-chat { display: none; }
 }
 
 /* 手机横屏：座位分散到两侧与顶部两端，避免挤在一起 */
