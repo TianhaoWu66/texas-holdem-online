@@ -4,12 +4,6 @@
 
 🌐 在线试玩：https://texaspoker.pythonanywhere.com/
 
-## 🗓️ 更新日志
-
-### 2026-08-21
-- 🚀 **独立部署上线**：https://texaspoker.pythonanywhere.com/（PythonAnywhere 账号 `texaspoker`，与香料商路完全独立）
-- ✅ 引擎测试：TS 9 组 + Python 30 项全部通过
-
 ## ✨ 功能
 - **联机对战**：房间码加入，2–6 人，无限注（NLH）
 - **人机对手**：简单 / 普通 / 困难 三档 AI
@@ -68,3 +62,11 @@ python pythonanywhere/test_poker.py    # Python 引擎（30 项）
 - [ ] 离线同屏（传设备轮流）
 - [ ] 热点联机（WebRTC 断网多设备）
 - [ ] 更多规则（保险、加注上限、锦标赛模式）
+
+---
+
+## 🗓️ 更新日志
+
+### 2026-08-21
+- 🚀 **独立部署上线**：https://texaspoker.pythonanywhere.com/（PythonAnywhere 账号 `texaspoker`，与香料商路完全独立）
+- ✅ 引擎测试：TS 9 组 + Python 30 项全部通过
